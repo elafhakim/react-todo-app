@@ -1,12 +1,12 @@
-import './App.css'
+import { Navigate, Route, Routes } from "react-router";
+import TodosPage from "./pages/TodosPage";
 
-function App() {
+export default function App() {
   return (
-    <main className="app">
-      <h1 className="text-3xl font-bold">ToDo App</h1>
-      <p>Manage your tasks and deadlines.</p>
-    </main>
-  )
-}
+    <Routes>
+      <Route path="/" element={<TodosPage />} />
 
-export default App
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
+  );
+}
