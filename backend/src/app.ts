@@ -1,6 +1,6 @@
 import cors from "cors";
 import express from "express";
-import todoRouter from "./api/routes/todoRoutes.js";
+import todoRouter from "./routes/todoRoutes.js";
 import { errorHandler, notFoundHandler } from "./middleware/errorHandler.js";
 
 const app = express();

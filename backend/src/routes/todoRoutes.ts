@@ -7,7 +7,7 @@ import {
   updateTodo,
   type CreateTodoInput,
   type UpdateTodoInput,
-} from "../../services/todoService.js";
+} from "../services/todoService.js";
 
 const todoRouter = Router();
 
