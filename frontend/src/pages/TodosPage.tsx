@@ -7,6 +7,7 @@ import type { Todo } from "../types/todo";
 export default function TodosPage() {
   const [todos, setTodos] = useState<Todo[]>([]);
   const [todoToEdit, setTodoToEdit] = useState<Todo | null>(null);
+  const [isFormOpen, setIsFormOpen] = useState(false);
   const [deletingTodoId, setDeletingTodoId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -48,21 +49,51 @@ export default function TodosPage() {
     };
   }, []);
 
+  useEffect(() => {
+    if (!isFormOpen) {
+      return;
+    }
+
+    function handleEscape(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        closeForm();
+      }
+    }
+
+    document.body.style.overflow = "hidden";
+    document.addEventListener("keydown", handleEscape);
+
+    return () => {
+      document.body.style.overflow = "";
+      document.removeEventListener("keydown", handleEscape);
+    };
+  }, [isFormOpen]);
+
+  function openCreateForm() {
+    setTodoToEdit(null);
+    setActionError(null);
+    setSuccessMessage(null);
+    setIsFormOpen(true);
+  }
+
+  function closeForm() {
+    setTodoToEdit(null);
+    setActionError(null);
+    setIsFormOpen(false);
+  }
+
   function handleTodoCreated(todo: Todo) {
     setTodos((currentTodos) => [todo, ...currentTodos]);
-    setActionError(null);
     setSuccessMessage(`Todo "${todo.title}" was created successfully.`);
+    setActionError(null);
+    setIsFormOpen(false);
   }
 
   function handleEdit(todo: Todo) {
     setTodoToEdit(todo);
     setActionError(null);
     setSuccessMessage(null);
-
-    window.scrollTo({
-      top: 0,
-      behavior: "smooth",
-    });
+    setIsFormOpen(true);
   }
 
   function handleTodoUpdated(updatedTodo: Todo) {
@@ -75,11 +106,7 @@ export default function TodosPage() {
     setTodoToEdit(null);
     setActionError(null);
     setSuccessMessage(`Todo "${updatedTodo.title}" was updated successfully.`);
-  }
-
-  function handleCancelEdit() {
-    setTodoToEdit(null);
-    setActionError(null);
+    setIsFormOpen(false);
   }
 
   async function handleDelete(todo: Todo) {
@@ -103,7 +130,7 @@ export default function TodosPage() {
       );
 
       if (todoToEdit?._id === todo._id) {
-        setTodoToEdit(null);
+        closeForm();
       }
 
       setSuccessMessage(`Todo "${todo.title}" was deleted successfully.`);
@@ -147,23 +174,27 @@ export default function TodosPage() {
           </p>
         )}
 
-        <TodoForm
-          key={todoToEdit?._id ?? "create-todo"}
-          todoToEdit={todoToEdit}
-          onTodoCreated={handleTodoCreated}
-          onTodoUpdated={handleTodoUpdated}
-          onCancelEdit={handleCancelEdit}
-        />
+        <section>
+          <div className="mb-4 flex items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <h2 className="text-2xl font-semibold text-slate-900">
+                My Todos
+              </h2>
 
-        <section className="mt-8">
-          <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-2xl font-semibold text-slate-900">My Todos</h2>
+              {!isLoading && !loadError && (
+                <span className="rounded-full bg-slate-200 px-3 py-1 text-sm font-medium text-slate-600">
+                  {todos.length}
+                </span>
+              )}
+            </div>
 
-            {!isLoading && !loadError && (
-              <span className="rounded-full bg-slate-200 px-3 py-1 text-sm font-medium text-slate-600">
-                {todos.length}
-              </span>
-            )}
+            <button
+              type="button"
+              onClick={openCreateForm}
+              className="rounded-lg bg-blue-600 px-4 py-2 font-medium text-white transition hover:bg-blue-700"
+            >
+              Create Todo
+            </button>
           </div>
 
           {isLoading && (
@@ -196,6 +227,34 @@ export default function TodosPage() {
           )}
         </section>
       </section>
+
+      {isFormOpen && (
+        <div
+          className="fixed inset-0 z-50 overflow-y-auto bg-slate-950/60 p-4"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) {
+              closeForm();
+            }
+          }}
+        >
+          <div className="flex min-h-full items-center justify-center">
+            <div
+              role="dialog"
+              aria-modal="true"
+              aria-label={todoToEdit ? "Edit Todo" : "Create Todo"}
+              className="w-full max-w-xl"
+            >
+              <TodoForm
+                key={todoToEdit?._id ?? "create-todo"}
+                todoToEdit={todoToEdit}
+                onTodoCreated={handleTodoCreated}
+                onTodoUpdated={handleTodoUpdated}
+                onCancelEdit={closeForm}
+              />
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   );
 }
