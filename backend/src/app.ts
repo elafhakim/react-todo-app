@@ -1,5 +1,6 @@
 import cors from "cors";
 import express from "express";
+import todoRouter from "./api/routes/todoRoutes.js";
 
 const app = express();
 
@@ -21,5 +22,7 @@ app.get("/api/health", (_request, response) => {
     message: "Todo API is running",
   });
 });
+
+app.use("/api/todos", todoRouter);
 
 export default app;
