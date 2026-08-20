@@ -2,6 +2,9 @@ import type { Todo } from "../types/todo";
 
 type TodoItemProps = {
   todo: Todo;
+  isDeleting: boolean;
+  onEdit: (todo: Todo) => void;
+  onDelete: (todo: Todo) => void;
 };
 
 function formatDeadline(deadline: string): string {
@@ -12,7 +15,12 @@ function formatDeadline(deadline: string): string {
   });
 }
 
-export default function TodoItem({ todo }: TodoItemProps) {
+export default function TodoItem({
+  todo,
+  isDeleting,
+  onEdit,
+  onDelete,
+}: TodoItemProps) {
   const isCompleted = todo.status === "completed";
 
   return (
@@ -48,6 +56,26 @@ export default function TodoItem({ todo }: TodoItemProps) {
           Deadline:{" "}
           <time dateTime={todo.deadline}>{formatDeadline(todo.deadline)}</time>
         </p>
+      </div>
+
+      <div className="mt-4 flex flex-wrap gap-3">
+        <button
+          type="button"
+          onClick={() => onEdit(todo)}
+          disabled={isDeleting}
+          className="rounded-lg bg-slate-100 px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-200 disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          Edit
+        </button>
+
+        <button
+          type="button"
+          onClick={() => onDelete(todo)}
+          disabled={isDeleting}
+          className="rounded-lg bg-red-50 px-4 py-2 text-sm font-medium text-red-700 transition hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          {isDeleting ? "Deleting..." : "Delete"}
+        </button>
       </div>
     </article>
   );

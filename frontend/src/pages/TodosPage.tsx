@@ -1,13 +1,16 @@
 import { useEffect, useState } from "react";
 import TodoForm from "../components/TodoForm";
 import TodoList from "../components/TodoList";
-import { getTodos } from "../api/todoApi";
+import { deleteTodo, getTodos } from "../api/todoApi";
 import type { Todo } from "../types/todo";
 
 export default function TodosPage() {
   const [todos, setTodos] = useState<Todo[]>([]);
+  const [todoToEdit, setTodoToEdit] = useState<Todo | null>(null);
+  const [deletingTodoId, setDeletingTodoId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   useEffect(() => {
@@ -47,8 +50,72 @@ export default function TodosPage() {
 
   function handleTodoCreated(todo: Todo) {
     setTodos((currentTodos) => [todo, ...currentTodos]);
-
+    setActionError(null);
     setSuccessMessage(`Todo "${todo.title}" was created successfully.`);
+  }
+
+  function handleEdit(todo: Todo) {
+    setTodoToEdit(todo);
+    setActionError(null);
+    setSuccessMessage(null);
+
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth",
+    });
+  }
+
+  function handleTodoUpdated(updatedTodo: Todo) {
+    setTodos((currentTodos) =>
+      currentTodos.map((todo) =>
+        todo._id === updatedTodo._id ? updatedTodo : todo,
+      ),
+    );
+
+    setTodoToEdit(null);
+    setActionError(null);
+    setSuccessMessage(`Todo "${updatedTodo.title}" was updated successfully.`);
+  }
+
+  function handleCancelEdit() {
+    setTodoToEdit(null);
+    setActionError(null);
+  }
+
+  async function handleDelete(todo: Todo) {
+    const shouldDelete = window.confirm(
+      `Do you really want to delete "${todo.title}"?`,
+    );
+
+    if (!shouldDelete) {
+      return;
+    }
+
+    try {
+      setDeletingTodoId(todo._id);
+      setActionError(null);
+      setSuccessMessage(null);
+
+      await deleteTodo(todo._id);
+
+      setTodos((currentTodos) =>
+        currentTodos.filter((currentTodo) => currentTodo._id !== todo._id),
+      );
+
+      if (todoToEdit?._id === todo._id) {
+        setTodoToEdit(null);
+      }
+
+      setSuccessMessage(`Todo "${todo.title}" was deleted successfully.`);
+    } catch (error) {
+      setActionError(
+        error instanceof Error
+          ? error.message
+          : "The Todo could not be deleted.",
+      );
+    } finally {
+      setDeletingTodoId(null);
+    }
   }
 
   return (
@@ -71,7 +138,22 @@ export default function TodosPage() {
           </p>
         )}
 
-        <TodoForm onTodoCreated={handleTodoCreated} />
+        {actionError && (
+          <p
+            role="alert"
+            className="mb-5 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700"
+          >
+            {actionError}
+          </p>
+        )}
+
+        <TodoForm
+          key={todoToEdit?._id ?? "create-todo"}
+          todoToEdit={todoToEdit}
+          onTodoCreated={handleTodoCreated}
+          onTodoUpdated={handleTodoUpdated}
+          onCancelEdit={handleCancelEdit}
+        />
 
         <section className="mt-8">
           <div className="mb-4 flex items-center justify-between">
@@ -102,7 +184,16 @@ export default function TodosPage() {
             </p>
           )}
 
-          {!isLoading && !loadError && <TodoList todos={todos} />}
+          {!isLoading && !loadError && (
+            <TodoList
+              todos={todos}
+              deletingTodoId={deletingTodoId}
+              onEdit={handleEdit}
+              onDelete={(todo) => {
+                void handleDelete(todo);
+              }}
+            />
+          )}
         </section>
       </section>
     </main>

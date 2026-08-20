@@ -1,15 +1,30 @@
 import { useState, type FormEvent } from "react";
-import { createTodo } from "../api/todoApi";
-import type { Todo } from "../types/todo";
+import { createTodo, updateTodo } from "../api/todoApi";
+import type { Todo, TodoStatus } from "../types/todo";
 
 type TodoFormProps = {
+  todoToEdit?: Todo | null;
   onTodoCreated: (todo: Todo) => void;
+  onTodoUpdated: (todo: Todo) => void;
+  onCancelEdit: () => void;
 };
 
-export default function TodoForm({ onTodoCreated }: TodoFormProps) {
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
-  const [deadline, setDeadline] = useState("");
+export default function TodoForm({
+  todoToEdit,
+  onTodoCreated,
+  onTodoUpdated,
+  onCancelEdit,
+}: TodoFormProps) {
+  const isEditing = Boolean(todoToEdit);
+
+  const [title, setTitle] = useState(todoToEdit?.title ?? "");
+  const [description, setDescription] = useState(todoToEdit?.description ?? "");
+  const [deadline, setDeadline] = useState(
+    todoToEdit?.deadline.slice(0, 10) ?? "",
+  );
+  const [status, setStatus] = useState<TodoStatus>(
+    todoToEdit?.status ?? "open",
+  );
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -32,6 +47,18 @@ export default function TodoForm({ onTodoCreated }: TodoFormProps) {
     try {
       setIsSubmitting(true);
 
+      if (todoToEdit) {
+        const updatedTodo = await updateTodo(todoToEdit._id, {
+          title: trimmedTitle,
+          description: description.trim() || undefined,
+          deadline,
+          status,
+        });
+
+        onTodoUpdated(updatedTodo);
+        return;
+      }
+
       const createdTodo = await createTodo({
         title: trimmedTitle,
         description: description.trim() || undefined,
@@ -43,11 +70,12 @@ export default function TodoForm({ onTodoCreated }: TodoFormProps) {
       setTitle("");
       setDescription("");
       setDeadline("");
+      setStatus("open");
     } catch (requestError) {
       setError(
         requestError instanceof Error
           ? requestError.message
-          : "The Todo could not be created.",
+          : `The Todo could not be ${isEditing ? "updated" : "created"}.`,
       );
     } finally {
       setIsSubmitting(false);
@@ -56,7 +84,9 @@ export default function TodoForm({ onTodoCreated }: TodoFormProps) {
 
   return (
     <form onSubmit={handleSubmit} className="rounded-xl bg-white p-6 shadow-md">
-      <h2 className="text-xl font-semibold text-slate-800">Create Todo</h2>
+      <h2 className="text-xl font-semibold text-slate-800">
+        {isEditing ? "Edit Todo" : "Create Todo"}
+      </h2>
 
       <div className="mt-5">
         <label
@@ -115,6 +145,27 @@ export default function TodoForm({ onTodoCreated }: TodoFormProps) {
         />
       </div>
 
+      {isEditing && (
+        <div className="mt-4">
+          <label
+            htmlFor="todo-status"
+            className="mb-2 block text-sm font-medium text-slate-700"
+          >
+            Status
+          </label>
+
+          <select
+            id="todo-status"
+            value={status}
+            onChange={(event) => setStatus(event.target.value as TodoStatus)}
+            className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+          >
+            <option value="open">Open</option>
+            <option value="completed">Completed</option>
+          </select>
+        </div>
+      )}
+
       {error && (
         <p
           role="alert"
@@ -124,13 +175,32 @@ export default function TodoForm({ onTodoCreated }: TodoFormProps) {
         </p>
       )}
 
-      <button
-        type="submit"
-        disabled={isSubmitting}
-        className="mt-6 w-full rounded-lg bg-blue-600 px-4 py-2.5 font-medium text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-blue-300"
-      >
-        {isSubmitting ? "Creating..." : "Create Todo"}
-      </button>
+      <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+        <button
+          type="submit"
+          disabled={isSubmitting}
+          className="flex-1 rounded-lg bg-blue-600 px-4 py-2.5 font-medium text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-blue-300"
+        >
+          {isSubmitting
+            ? isEditing
+              ? "Saving..."
+              : "Creating..."
+            : isEditing
+              ? "Save Changes"
+              : "Create Todo"}
+        </button>
+
+        {isEditing && (
+          <button
+            type="button"
+            onClick={onCancelEdit}
+            disabled={isSubmitting}
+            className="rounded-lg border border-slate-300 px-4 py-2.5 font-medium text-slate-700 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            Cancel
+          </button>
+        )}
+      </div>
     </form>
   );
 }
