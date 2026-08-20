@@ -46,7 +46,7 @@ export default function TodoItem({
       </div>
 
       {todo.description && (
-        <p className="mt-3 whitespace-pre-wrap text-sm text-slate-600">
+        <p className="mt-3 whitespace-pre-wrap text-sm text-slate-600 [overflow-wrap:anywhere]">
           {todo.description}
         </p>
       )}
