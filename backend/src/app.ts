@@ -1,6 +1,7 @@
 import cors from "cors";
 import express from "express";
 import todoRouter from "./api/routes/todoRoutes.js";
+import { errorHandler, notFoundHandler } from "./middleware/errorHandler.js";
 
 const app = express();
 
@@ -24,5 +25,8 @@ app.get("/api/health", (_request, response) => {
 });
 
 app.use("/api/todos", todoRouter);
+
+app.use(notFoundHandler);
+app.use(errorHandler);
 
 export default app;
