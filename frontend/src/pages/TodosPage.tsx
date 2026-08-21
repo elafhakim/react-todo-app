@@ -4,6 +4,7 @@ import TodoList from "../components/TodoList";
 import { deleteTodo, getTodos, updateTodo } from "../api/todoApi";
 import type { Todo } from "../types/todo";
 import DeleteTodoModal from "../components/DeleteTodoModal";
+import TodoPagination from "../components/TodoPagination";
 
 export default function TodosPage() {
   const [todos, setTodos] = useState<Todo[]>([]);
@@ -16,6 +17,14 @@ export default function TodosPage() {
   const [actionError, setActionError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [todoToDelete, setTodoToDelete] = useState<Todo | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(8);
+
+  const totalPages = Math.max(1, Math.ceil(todos.length / pageSize));
+  const activePage = Math.min(currentPage, totalPages);
+
+  const firstTodoIndex = (activePage - 1) * pageSize;
+  const visibleTodos = todos.slice(firstTodoIndex, firstTodoIndex + pageSize);
 
   useEffect(() => {
     let isCancelled = false;
@@ -87,6 +96,7 @@ export default function TodosPage() {
 
   function handleTodoCreated(todo: Todo) {
     setTodos((currentTodos) => [todo, ...currentTodos]);
+    setCurrentPage(1);
     setSuccessMessage(`Todo "${todo.title}" was created successfully.`);
     setActionError(null);
     setIsFormOpen(false);
@@ -277,7 +287,7 @@ export default function TodosPage() {
 
           {!isLoading && !loadError && (
             <TodoList
-              todos={todos}
+              todos={visibleTodos}
               deletingTodoId={deletingTodoId}
               updatingTodoId={updatingTodoId}
               onEdit={handleEdit}
@@ -285,6 +295,19 @@ export default function TodosPage() {
                 void handleToggleStatus(todo);
               }}
               onDelete={handleDelete}
+            />
+          )}
+
+          {todos.length > 0 && (
+            <TodoPagination
+              currentPage={activePage}
+              totalPages={totalPages}
+              pageSize={pageSize}
+              onPageChange={setCurrentPage}
+              onPageSizeChange={(newPageSize) => {
+                setPageSize(newPageSize);
+                setCurrentPage(1);
+              }}
             />
           )}
         </section>
