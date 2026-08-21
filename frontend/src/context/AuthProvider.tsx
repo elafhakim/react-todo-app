@@ -3,8 +3,8 @@ import { loginUser, registerUser } from "../services/authService";
 import type { LoginData, RegisterData, User } from "../types/user";
 import { AuthContext } from "./AuthContext";
 
-const TOKEN_STORAGE_KEY = "authToken";
-const USER_STORAGE_KEY = "authUser";
+const TOKEN_STORAGE_KEY = "todo-app-token";
+const USER_STORAGE_KEY = "todo-app-user";
 
 type AuthProviderProps = {
   children: ReactNode;
