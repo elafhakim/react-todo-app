@@ -1,5 +1,6 @@
 import { type ErrorRequestHandler, type RequestHandler } from "express";
 import mongoose from "mongoose";
+import { AuthServiceError } from "../services/authService.js";
 
 type HttpSyntaxError = SyntaxError & {
   status?: number;
@@ -18,9 +19,17 @@ export const errorHandler: ErrorRequestHandler = (
   response,
   _next,
 ) => {
+  if (error instanceof AuthServiceError) {
+    response.status(error.statusCode).json({
+      message: error.message,
+    });
+
+    return;
+  }
+
   if (error instanceof mongoose.Error.ValidationError) {
     response.status(400).json({
-      message: "Todo validation failed",
+      message: "Validation failed",
       errors: Object.values(error.errors).map(
         (validationError) => validationError.message,
       ),

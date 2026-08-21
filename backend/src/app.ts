@@ -1,5 +1,6 @@
 import cors from "cors";
 import express from "express";
+import authRouter from "./routes/authRoutes.js";
 import todoRouter from "./routes/todoRoutes.js";
 import { errorHandler, notFoundHandler } from "./middleware/errorHandler.js";
 
@@ -7,7 +8,7 @@ const app = express();
 
 app.use(
   cors({
-    origin: process.env.FRONTEND_URL ?? "http://localhost:5174",
+    origin: process.env.FRONTEND_URL ?? "http://localhost:5173",
   }),
 );
 
@@ -24,6 +25,7 @@ app.get("/api/health", (_request, response) => {
   });
 });
 
+app.use("/api/auth", authRouter);
 app.use("/api/todos", todoRouter);
 
 app.use(notFoundHandler);
