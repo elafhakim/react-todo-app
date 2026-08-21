@@ -1,5 +1,6 @@
 import { Navigate, Route, Routes } from "react-router";
-import ProtectedRoute from "./components/auth/protectedRoute";
+import Navbar from "./components/layout/Navbar";
+import ProtectedRoute from "./components/auth/ProtectedRoute";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
 import TodosPage from "./pages/TodosPage";
@@ -11,7 +12,10 @@ export default function App() {
         path="/"
         element={
           <ProtectedRoute>
-            <TodosPage />
+            <>
+              <Navbar />
+              <TodosPage />
+            </>
           </ProtectedRoute>
         }
       />
