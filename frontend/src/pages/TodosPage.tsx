@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
-import TodoForm from "../components/TodoForm";
-import TodoList from "../components/TodoList";
+import TodoForm from "../components/todo/TodoForm";
+import TodoList from "../components/todo/TodoList";
 import { deleteTodo, getTodos, updateTodo } from "../api/todoApi";
 import type { Todo } from "../types/todo";
-import DeleteTodoModal from "../components/DeleteTodoModal";
-import TodoPagination from "../components/TodoPagination";
+import DeleteTodoModal from "../components/todo/DeleteTodoModal";
+import TodoPagination from "../components/todo/TodoPagination";
 
 export default function TodosPage() {
   const [todos, setTodos] = useState<Todo[]>([]);

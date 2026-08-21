@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from "react";
-import { createTodo, updateTodo } from "../api/todoApi";
-import type { Todo, TodoStatus } from "../types/todo";
+import { createTodo, updateTodo } from "../../api/todoApi";
+import type { Todo, TodoStatus } from "../../types/todo";
 
 type TodoFormProps = {
   todoToEdit?: Todo | null;
