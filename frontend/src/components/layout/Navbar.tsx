@@ -18,7 +18,7 @@ export default function Navbar() {
       <nav className="mx-auto flex min-h-16 w-full max-w-6xl items-center justify-between gap-4 px-4 py-3 sm:px-6 lg:px-8">
         <Link
           to="/"
-          className="shrink-0 text-xl font-bold text-slate-900 transition hover:text-blue-600"
+          className="shrink-0 text-3xl font-bold text-slate-900 transition hover:text-blue-600"
         >
           Todo App
         </Link>

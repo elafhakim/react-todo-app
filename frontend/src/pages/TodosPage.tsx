@@ -15,10 +15,9 @@ export default function TodosPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [todoToDelete, setTodoToDelete] = useState<Todo | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(8);
+  const [pageSize, setPageSize] = useState(5);
 
   const totalPages = Math.max(1, Math.ceil(todos.length / pageSize));
   const activePage = Math.min(currentPage, totalPages);
@@ -84,7 +83,6 @@ export default function TodosPage() {
   function openCreateForm() {
     setTodoToEdit(null);
     setActionError(null);
-    setSuccessMessage(null);
     setIsFormOpen(true);
   }
 
@@ -97,7 +95,6 @@ export default function TodosPage() {
   function handleTodoCreated(todo: Todo) {
     setTodos((currentTodos) => [todo, ...currentTodos]);
     setCurrentPage(1);
-    setSuccessMessage(`Todo "${todo.title}" was created successfully.`);
     setActionError(null);
     setIsFormOpen(false);
   }
@@ -105,7 +102,6 @@ export default function TodosPage() {
   function handleEdit(todo: Todo) {
     setTodoToEdit(todo);
     setActionError(null);
-    setSuccessMessage(null);
     setIsFormOpen(true);
   }
 
@@ -118,7 +114,6 @@ export default function TodosPage() {
 
     setTodoToEdit(null);
     setActionError(null);
-    setSuccessMessage(`Todo "${updatedTodo.title}" was updated successfully.`);
     setIsFormOpen(false);
   }
 
@@ -128,7 +123,6 @@ export default function TodosPage() {
     try {
       setUpdatingTodoId(todo._id);
       setActionError(null);
-      setSuccessMessage(null);
 
       const updatedTodo = await updateTodo(todo._id, {
         status: newStatus,
@@ -140,9 +134,6 @@ export default function TodosPage() {
         ),
       );
 
-      setSuccessMessage(
-        `Todo "${updatedTodo.title}" was marked as ${newStatus}.`,
-      );
     } catch (error) {
       setActionError(
         error instanceof Error
@@ -157,7 +148,6 @@ export default function TodosPage() {
   function handleDelete(todo: Todo) {
     setTodoToDelete(todo);
     setActionError(null);
-    setSuccessMessage(null);
   }
 
   function closeDeleteModal() {
@@ -178,7 +168,6 @@ export default function TodosPage() {
     try {
       setDeletingTodoId(todo._id);
       setActionError(null);
-      setSuccessMessage(null);
 
       await deleteTodo(todo._id);
 
@@ -190,7 +179,6 @@ export default function TodosPage() {
         closeForm();
       }
 
-      setSuccessMessage(`Todo "${todo.title}" was deleted successfully.`);
       setTodoToDelete(null);
     } catch (error) {
       setActionError(
@@ -208,22 +196,6 @@ export default function TodosPage() {
   return (
     <main className="min-h-screen px-4 py-10">
       <section className="mx-auto w-full max-w-3xl">
-        <header className="mb-8 text-center">
-          <h1 className="text-4xl font-bold text-slate-900">Todo App</h1>
-
-          <p className="mt-3 text-slate-600">
-            Manage your tasks and deadlines.
-          </p>
-        </header>
-
-        {successMessage && (
-          <p
-            role="status"
-            className="mb-5 rounded-lg bg-green-50 px-4 py-3 text-sm text-green-700"
-          >
-            {successMessage}
-          </p>
-        )}
 
         {actionError && (
           <p
