@@ -2,6 +2,7 @@ import cors from "cors";
 import express from "express";
 import authRouter from "./routes/authRoutes.js";
 import todoRouter from "./routes/todoRoutes.js";
+import { authMiddleware } from "./middleware/authMiddleware.js";
 import { errorHandler, notFoundHandler } from "./middleware/errorHandler.js";
 
 const app = express();
@@ -26,7 +27,8 @@ app.get("/api/health", (_request, response) => {
 });
 
 app.use("/api/auth", authRouter);
-app.use("/api/todos", todoRouter);
+
+app.use("/api/todos", authMiddleware, todoRouter);
 
 app.use(notFoundHandler);
 app.use(errorHandler);
