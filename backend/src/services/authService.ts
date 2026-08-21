@@ -13,6 +13,11 @@ export type RegisterUserInput = {
   password: string;
 };
 
+export type LoginUserInput = {
+  email: string;
+  password: string;
+};
+
 export type AuthenticatedUser = {
   id: string;
   name: string;
@@ -57,6 +62,13 @@ export function generateToken(userId: string): string {
   );
 }
 
+export async function comparePassword(
+  password: string,
+  passwordHash: string,
+): Promise<boolean> {
+  return bcrypt.compare(password, passwordHash);
+}
+
 function validateRegistrationInput(input: RegisterUserInput): void {
   if (typeof input.name !== "string" || input.name.trim().length < 2) {
     throw new AuthServiceError("Name must contain at least 2 characters", 400);
@@ -81,6 +93,16 @@ function validateRegistrationInput(input: RegisterUserInput): void {
       `Password cannot exceed ${MAXIMUM_PASSWORD_BYTES} bytes`,
       400,
     );
+  }
+}
+
+function validateLoginInput(input: LoginUserInput): void {
+  if (typeof input.email !== "string" || !input.email.trim()) {
+    throw new AuthServiceError("Email is required", 400);
+  }
+
+  if (typeof input.password !== "string" || !input.password) {
+    throw new AuthServiceError("Password is required", 400);
   }
 }
 
@@ -145,4 +167,41 @@ export async function registerUser(
 
     throw error;
   }
+}
+
+export async function loginUser(
+  input: LoginUserInput,
+): Promise<AuthenticationResult> {
+  validateLoginInput(input);
+
+  const email = input.email.trim().toLowerCase();
+
+  const user = await UserModel.findOne({
+    email,
+  }).select("+passwordHash");
+
+  if (!user) {
+    throw new AuthServiceError("Invalid email or password", 401);
+  }
+
+  const passwordMatches = await comparePassword(
+    input.password,
+    user.passwordHash,
+  );
+
+  if (!passwordMatches) {
+    throw new AuthServiceError("Invalid email or password", 401);
+  }
+
+  const token = generateToken(user.id);
+
+  return {
+    user: {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      createdAt: user.createdAt,
+    },
+    token,
+  };
 }
