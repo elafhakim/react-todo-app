@@ -1,5 +1,5 @@
 import bcrypt from "bcrypt";
-import jwt, { JsonWebTokenError, TokenExpiredError, type JwtPayload } from "jsonwebtoken";
+import jwt, { type JwtPayload } from "jsonwebtoken";
 import UserModel from "../models/User.js";
 
 const SALT_ROUNDS = 12;
@@ -83,11 +83,11 @@ export function validateToken(token: string): AuthTokenPayload {
       throw error;
     }
 
-    if (error instanceof TokenExpiredError) {
+    if (error instanceof jwt.TokenExpiredError) {
       throw new AuthServiceError("Authentication token has expired", 401);
     }
 
-    if (error instanceof JsonWebTokenError) {
+    if (error instanceof jwt.JsonWebTokenError) {
       throw new AuthServiceError("Invalid authentication token", 401);
     }
 
