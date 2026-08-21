@@ -215,6 +215,14 @@ export default function TodosPage() {
             </p>
           )}
 
+          {!isLoading && !loadError && todos.length > 0 && (
+            <div className="mb-2 hidden grid-cols-[minmax(0,1fr)_116px_91px_96px] gap-5 px-5 text-xs font-bold uppercase tracking-wide text-slate-900 sm:grid">
+              <span>Task</span>
+              <span className="w-[116px]">Deadline</span>
+              <span className="w-[91px]">Status</span>
+              <span className="w-24" aria-hidden="true" />
+            </div>
+          )}
           {!isLoading && !loadError && (
             <TodoList
               todos={todos}
