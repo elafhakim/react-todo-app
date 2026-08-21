@@ -11,14 +11,14 @@ import {
 
 const todoRouter = Router();
 
-todoRouter.get("/", async (_request, response) => {
-  const todos = await getTodos();
+todoRouter.get("/", async (request, response) => {
+  const todos = await getTodos(request.userId);
 
   response.status(200).json(todos);
 });
 
 todoRouter.get("/:id", async (request, response) => {
-  const todo = await getTodoById(request.params.id);
+  const todo = await getTodoById(request.params.id, request.userId);
 
   if (!todo) {
     response.status(404).json({
@@ -41,7 +41,7 @@ todoRouter.post("/", async (request, response) => {
     status,
   };
 
-  const createdTodo = await createTodo(todoData);
+  const createdTodo = await createTodo(request.userId, todoData);
 
   response.status(201).json(createdTodo);
 });
@@ -59,7 +59,7 @@ todoRouter.put("/:id", async (request, response) => {
     todoData.deadline = new Date(deadline);
   }
 
-  const updatedTodo = await updateTodo(request.params.id, todoData);
+  const updatedTodo = await updateTodo(request.params.id, request.userId, todoData);
 
   if (!updatedTodo) {
     response.status(404).json({
@@ -73,7 +73,7 @@ todoRouter.put("/:id", async (request, response) => {
 });
 
 todoRouter.delete("/:id", async (request, response) => {
-  const deletedTodo = await deleteTodo(request.params.id);
+  const deletedTodo = await deleteTodo(request.params.id, request.userId);
 
   if (!deletedTodo) {
     response.status(404).json({

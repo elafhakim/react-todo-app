@@ -14,25 +14,25 @@ export type UpdateTodoInput = {
   status?: TodoStatus;
 };
 
-export async function getTodos() {
-  return TodoModel.find().sort({ createdAt: -1 });
+export async function getTodos(userId: string) {
+  return TodoModel.find({ user: userId }).sort({ createdAt: -1 });
 }
 
-export async function getTodoById(todoId: string) {
-  return TodoModel.findById(todoId);
+export async function getTodoById(todoId: string, userId: string) {
+  return TodoModel.findOne({ _id: todoId, user: userId });
 }
 
-export async function createTodo(todoData: CreateTodoInput) {
-  return TodoModel.create(todoData);
+export async function createTodo(userId: string, todoData: CreateTodoInput) {
+  return TodoModel.create({ ...todoData, user: userId });
 }
 
-export async function updateTodo(todoId: string, todoData: UpdateTodoInput) {
-  return TodoModel.findByIdAndUpdate(todoId, todoData, {
+export async function updateTodo( todoId: string, userId: string, todoData: UpdateTodoInput) {
+  return TodoModel.findOneAndUpdate({ _id: todoId, user: userId }, todoData, {
     new: true,
     runValidators: true,
   });
 }
 
-export async function deleteTodo(todoId: string) {
-  return TodoModel.findByIdAndDelete(todoId);
+export async function deleteTodo(todoId: string, userId: string) {
+  return TodoModel.findOneAndDelete({ _id: todoId, user: userId });
 }
