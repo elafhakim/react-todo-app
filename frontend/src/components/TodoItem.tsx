@@ -3,8 +3,10 @@ import type { Todo } from "../types/todo";
 type TodoItemProps = {
   todo: Todo;
   isDeleting: boolean;
+  isUpdatingStatus: boolean;
   onEdit: (todo: Todo) => void;
   onDelete: (todo: Todo) => void;
+  onToggleStatus: (todo: Todo) => void;
 };
 
 function formatDeadline(deadline: string): string {
@@ -18,14 +20,28 @@ function formatDeadline(deadline: string): string {
 export default function TodoItem({
   todo,
   isDeleting,
+  isUpdatingStatus,
   onEdit,
   onDelete,
+  onToggleStatus,
 }: TodoItemProps) {
   const isCompleted = todo.status === "completed";
+  const isDisabled = isDeleting || isUpdatingStatus;
 
   return (
     <article className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-      <div className="grid gap-5 sm:grid-cols-[minmax(0,1fr)_116px_91px_96px] sm:items-start">
+      <div className="grid grid-cols-[24px_minmax(0,1fr)] gap-x-4 gap-y-5 sm:grid-cols-[24px_minmax(0,1fr)_116px_91px_96px] sm:gap-5">
+        <input
+          type="checkbox"
+          checked={isCompleted}
+          onChange={() => onToggleStatus(todo)}
+          disabled={isDisabled}
+          aria-label={`Mark "${todo.title}" as ${
+            isCompleted ? "open" : "completed"
+          }`}
+          className="mt-1 size-5 cursor-pointer accent-blue-600 disabled:cursor-not-allowed disabled:opacity-50"
+        />
+
         <div className="min-w-0">
           <h3
             className={`text-lg font-semibold [overflow-wrap:anywhere] ${
@@ -42,7 +58,7 @@ export default function TodoItem({
           )}
         </div>
 
-        <div>
+        <div className="col-start-2 sm:col-start-auto">
           <p className="text-xs font-medium uppercase text-slate-400 sm:hidden">
             Deadline
           </p>
@@ -55,7 +71,7 @@ export default function TodoItem({
           </time>
         </div>
 
-        <div>
+        <div className="col-start-2 sm:col-start-auto">
           <p className="text-xs font-medium uppercase text-slate-400 sm:hidden">
             Status
           </p>
@@ -67,15 +83,19 @@ export default function TodoItem({
                 : "bg-amber-100 text-amber-700"
             }`}
           >
-            {isCompleted ? "Completed" : "Open"}
+            {isUpdatingStatus
+              ? "Updating..."
+              : isCompleted
+                ? "Completed"
+                : "Open"}
           </span>
         </div>
 
-        <div className="flex flex-col gap-2">
+        <div className="col-start-2 flex flex-col gap-2 sm:col-start-auto">
           <button
             type="button"
             onClick={() => onEdit(todo)}
-            disabled={isDeleting}
+            disabled={isDisabled}
             className="w-24 rounded-lg bg-slate-100 px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-200 disabled:cursor-not-allowed disabled:opacity-50"
           >
             Edit
@@ -84,7 +104,7 @@ export default function TodoItem({
           <button
             type="button"
             onClick={() => onDelete(todo)}
-            disabled={isDeleting}
+            disabled={isDisabled}
             className="w-24 rounded-lg bg-red-50 px-4 py-2 text-sm font-medium text-red-700 transition hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {isDeleting ? "Deleting..." : "Delete"}

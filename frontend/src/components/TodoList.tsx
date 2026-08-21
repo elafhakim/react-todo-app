@@ -4,15 +4,19 @@ import TodoItem from "./TodoItem";
 type TodoListProps = {
   todos: Todo[];
   deletingTodoId: string | null;
+  updatingTodoId: string | null;
   onEdit: (todo: Todo) => void;
   onDelete: (todo: Todo) => void;
+  onToggleStatus: (todo: Todo) => void;
 };
 
 export default function TodoList({
   todos,
   deletingTodoId,
+  updatingTodoId,
   onEdit,
   onDelete,
+  onToggleStatus,
 }: TodoListProps) {
   if (todos.length === 0) {
     return (
@@ -20,7 +24,7 @@ export default function TodoList({
         <h3 className="text-lg font-semibold text-slate-700">No Todos yet</h3>
 
         <p className="mt-2 text-sm text-slate-500">
-          Create your first Todo using the form above.
+          Create your first Todo using the Create Todo button.
         </p>
       </div>
     );
@@ -33,8 +37,10 @@ export default function TodoList({
           key={todo._id}
           todo={todo}
           isDeleting={deletingTodoId === todo._id}
+          isUpdatingStatus={updatingTodoId === todo._id}
           onEdit={onEdit}
           onDelete={onDelete}
+          onToggleStatus={onToggleStatus}
         />
       ))}
     </div>

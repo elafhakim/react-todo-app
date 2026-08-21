@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import TodoForm from "../components/TodoForm";
 import TodoList from "../components/TodoList";
-import { deleteTodo, getTodos } from "../api/todoApi";
+import { deleteTodo, getTodos, updateTodo } from "../api/todoApi";
 import type { Todo } from "../types/todo";
 
 export default function TodosPage() {
@@ -9,6 +9,7 @@ export default function TodosPage() {
   const [todoToEdit, setTodoToEdit] = useState<Todo | null>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [deletingTodoId, setDeletingTodoId] = useState<string | null>(null);
+  const [updatingTodoId, setUpdatingTodoId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
@@ -107,6 +108,38 @@ export default function TodosPage() {
     setActionError(null);
     setSuccessMessage(`Todo "${updatedTodo.title}" was updated successfully.`);
     setIsFormOpen(false);
+  }
+
+  async function handleToggleStatus(todo: Todo) {
+    const newStatus = todo.status === "completed" ? "open" : "completed";
+
+    try {
+      setUpdatingTodoId(todo._id);
+      setActionError(null);
+      setSuccessMessage(null);
+
+      const updatedTodo = await updateTodo(todo._id, {
+        status: newStatus,
+      });
+
+      setTodos((currentTodos) =>
+        currentTodos.map((currentTodo) =>
+          currentTodo._id === updatedTodo._id ? updatedTodo : currentTodo,
+        ),
+      );
+
+      setSuccessMessage(
+        `Todo "${updatedTodo.title}" was marked as ${newStatus}.`,
+      );
+    } catch (error) {
+      setActionError(
+        error instanceof Error
+          ? error.message
+          : "The Todo status could not be updated.",
+      );
+    } finally {
+      setUpdatingTodoId(null);
+    }
   }
 
   async function handleDelete(todo: Todo) {
@@ -216,18 +249,24 @@ export default function TodosPage() {
           )}
 
           {!isLoading && !loadError && todos.length > 0 && (
-            <div className="mb-2 hidden grid-cols-[minmax(0,1fr)_116px_91px_96px] gap-5 px-5 text-xs font-bold uppercase tracking-wide text-slate-900 sm:grid">
+            <div className="mb-2 hidden grid-cols-[24px_minmax(0,1fr)_116px_91px_96px] gap-5 px-5 text-xs font-bold uppercase tracking-wide text-slate-900 sm:grid">
+              <span aria-hidden="true" />
               <span>Task</span>
-              <span className="w-[116px]">Deadline</span>
-              <span className="w-[91px]">Status</span>
-              <span className="w-24" aria-hidden="true" />
+              <span>Deadline</span>
+              <span>Status</span>
+              <span aria-hidden="true" />
             </div>
           )}
+
           {!isLoading && !loadError && (
             <TodoList
               todos={todos}
               deletingTodoId={deletingTodoId}
+              updatingTodoId={updatingTodoId}
               onEdit={handleEdit}
+              onToggleStatus={(todo) => {
+                void handleToggleStatus(todo);
+              }}
               onDelete={(todo) => {
                 void handleDelete(todo);
               }}
