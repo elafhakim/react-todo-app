@@ -1,4 +1,4 @@
-import { getStoredToken } from "../services/authService";
+import { getStoredToken, removeStoredToken, removeStoredUser } from "../services/authService";
 import type { CreateTodoData, Todo, UpdateTodoData } from "../types/todo";
 
 const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:3001/api";
@@ -22,6 +22,15 @@ async function apiRequest<T>(path: string, options?: RequestInit): Promise<T> {
     ...options,
     headers,
   });
+
+  if (response.status === 401) {
+    removeStoredToken();
+    removeStoredUser();
+
+    window.location.replace("/login");
+
+    return new Promise<T>(() => {});
+  }
 
   if (response.status === 204) {
     return undefined as T;
