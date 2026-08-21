@@ -1,24 +1,21 @@
-import { Router } from 'express'
-import { registerUser } from '../services/authService.js'
+import { Router } from "express";
+import { registerUser } from "../services/authService.js";
 
-const authRouter = Router()
+const authRouter = Router();
 
-authRouter.post(
-  '/register',
-  async (request, response) => {
-    const { name, email, password } = request.body
+authRouter.post("/register", async (request, response) => {
+  const { name, email, password } = request.body;
 
-    const user = await registerUser({
-      name,
-      email,
-      password,
-    })
+  const authenticationResult = await registerUser({
+    name,
+    email,
+    password,
+  });
 
-    response.status(201).json({
-      message: 'User registered successfully',
-      user,
-    })
-  },
-)
+  response.status(201).json({
+    message: "User registered successfully",
+    ...authenticationResult,
+  });
+});
 
-export default authRouter
+export default authRouter;

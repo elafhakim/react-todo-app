@@ -1,9 +1,11 @@
 import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
 import UserModel from "../models/User.js";
 
 const SALT_ROUNDS = 12;
 const MINIMUM_PASSWORD_LENGTH = 8;
 const MAXIMUM_PASSWORD_BYTES = 72;
+const TOKEN_EXPIRES_IN = "1h";
 
 export type RegisterUserInput = {
   name: string;
@@ -11,11 +13,16 @@ export type RegisterUserInput = {
   password: string;
 };
 
-export type RegisteredUser = {
+export type AuthenticatedUser = {
   id: string;
   name: string;
   email: string;
   createdAt: Date;
+};
+
+export type AuthenticationResult = {
+  user: AuthenticatedUser;
+  token: string;
 };
 
 export class AuthServiceError extends Error {
@@ -26,6 +33,28 @@ export class AuthServiceError extends Error {
     super(message);
     this.name = "AuthServiceError";
   }
+}
+
+function getJwtSecret(): string {
+  const jwtSecret = process.env.JWT_SECRET;
+
+  if (!jwtSecret) {
+    throw new Error("JWT_SECRET is not defined in the environment variables");
+  }
+
+  return jwtSecret;
+}
+
+export function generateToken(userId: string): string {
+  return jwt.sign(
+    {
+      userId,
+    },
+    getJwtSecret(),
+    {
+      expiresIn: TOKEN_EXPIRES_IN,
+    },
+  );
 }
 
 function validateRegistrationInput(input: RegisterUserInput): void {
@@ -66,8 +95,11 @@ function isDuplicateKeyError(error: unknown): error is { code: number } {
 
 export async function registerUser(
   input: RegisterUserInput,
-): Promise<RegisteredUser> {
+): Promise<AuthenticationResult> {
   validateRegistrationInput(input);
+
+  // Validates the configuration before the user is saved.
+  getJwtSecret();
 
   const name = input.name.trim();
   const email = input.email.trim().toLowerCase();
@@ -92,11 +124,16 @@ export async function registerUser(
       passwordHash,
     });
 
+    const token = generateToken(user.id);
+
     return {
-      id: user.id,
-      name: user.name,
-      email: user.email,
-      createdAt: user.createdAt,
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        createdAt: user.createdAt,
+      },
+      token,
     };
   } catch (error) {
     if (isDuplicateKeyError(error)) {
