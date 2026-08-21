@@ -3,6 +3,7 @@ import TodoForm from "../components/TodoForm";
 import TodoList from "../components/TodoList";
 import { deleteTodo, getTodos, updateTodo } from "../api/todoApi";
 import type { Todo } from "../types/todo";
+import DeleteTodoModal from "../components/DeleteTodoModal";
 
 export default function TodosPage() {
   const [todos, setTodos] = useState<Todo[]>([]);
@@ -14,6 +15,7 @@ export default function TodosPage() {
   const [loadError, setLoadError] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [todoToDelete, setTodoToDelete] = useState<Todo | null>(null);
 
   useEffect(() => {
     let isCancelled = false;
@@ -142,14 +144,26 @@ export default function TodosPage() {
     }
   }
 
-  async function handleDelete(todo: Todo) {
-    const shouldDelete = window.confirm(
-      `Do you really want to delete "${todo.title}"?`,
-    );
+  function handleDelete(todo: Todo) {
+    setTodoToDelete(todo);
+    setActionError(null);
+    setSuccessMessage(null);
+  }
 
-    if (!shouldDelete) {
+  function closeDeleteModal() {
+    if (deletingTodoId) {
       return;
     }
+
+    setTodoToDelete(null);
+  }
+
+  async function confirmDelete() {
+    if (!todoToDelete) {
+      return;
+    }
+
+    const todo = todoToDelete;
 
     try {
       setDeletingTodoId(todo._id);
@@ -167,12 +181,15 @@ export default function TodosPage() {
       }
 
       setSuccessMessage(`Todo "${todo.title}" was deleted successfully.`);
+      setTodoToDelete(null);
     } catch (error) {
       setActionError(
         error instanceof Error
           ? error.message
           : "The Todo could not be deleted.",
       );
+
+      setTodoToDelete(null);
     } finally {
       setDeletingTodoId(null);
     }
@@ -267,9 +284,7 @@ export default function TodosPage() {
               onToggleStatus={(todo) => {
                 void handleToggleStatus(todo);
               }}
-              onDelete={(todo) => {
-                void handleDelete(todo);
-              }}
+              onDelete={handleDelete}
             />
           )}
         </section>
@@ -301,6 +316,17 @@ export default function TodosPage() {
             </div>
           </div>
         </div>
+      )}
+
+      {todoToDelete && (
+        <DeleteTodoModal
+          todo={todoToDelete}
+          isDeleting={deletingTodoId === todoToDelete._id}
+          onCancel={closeDeleteModal}
+          onConfirm={() => {
+            void confirmDelete();
+          }}
+        />
       )}
     </main>
   );
