@@ -1,9 +1,10 @@
 import { useState, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router";
-import { loginUser, saveToken } from "../services/authService";
+import useAuth from "../hooks/useAuth";
 
 export default function LoginPage() {
   const navigate = useNavigate();
+    const { login } = useAuth();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -22,16 +23,12 @@ export default function LoginPage() {
     try {
       setIsSubmitting(true);
 
-      const authenticationResponse = await loginUser({
+      await login({
         email: email.trim(),
         password,
       });
 
-      saveToken(authenticationResponse.token);
-
-      navigate("/", {
-        replace: true,
-      });
+      navigate("/", { replace: true });
     } catch (requestError) {
       setError(
         requestError instanceof Error ? requestError.message : "Login failed.",

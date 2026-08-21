@@ -1,9 +1,10 @@
 import { useState, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router";
-import { registerUser, saveToken } from "../services/authService";
+import useAuth from "../hooks/useAuth";
 
 export default function RegisterPage() {
   const navigate = useNavigate();
+  const { register } = useAuth();
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -39,17 +40,12 @@ export default function RegisterPage() {
     try {
       setIsSubmitting(true);
 
-      const authenticationResponse = await registerUser({
+      await register({
         name: name.trim(),
         email: email.trim(),
         password,
       });
-
-      saveToken(authenticationResponse.token);
-
-      navigate("/", {
-        replace: true,
-      });
+      navigate("/", { replace: true });
     } catch (requestError) {
       setError(
         requestError instanceof Error

@@ -1,8 +1,10 @@
-import type { AuthenticationResponse, LoginData, RegisterData } from "../types/user";
+import type { User, AuthenticationResponse, LoginData, RegisterData } from "../types/user";
 
 const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:3001/api";
 
 const TOKEN_STORAGE_KEY = "todo-app-token";
+
+const USER_STORAGE_KEY = 'todo-app-user'
 
 type ApiErrorResponse = {
   message?: string;
@@ -61,4 +63,27 @@ export function getStoredToken(): string | null {
 
 export function removeStoredToken(): void {
   localStorage.removeItem(TOKEN_STORAGE_KEY);
+}
+
+export function saveUser(user: User): void {
+  localStorage.setItem( USER_STORAGE_KEY, JSON.stringify(user) )
+}
+
+export function getStoredUser(): User | null {
+  const storedUser = localStorage.getItem(USER_STORAGE_KEY)
+
+  if (!storedUser) {
+    return null
+  }
+
+  try {
+    return JSON.parse(storedUser) as User
+  } catch {
+    localStorage.removeItem(USER_STORAGE_KEY)
+    return null
+  }
+}
+
+export function removeStoredUser(): void {
+  localStorage.removeItem(USER_STORAGE_KEY)
 }
